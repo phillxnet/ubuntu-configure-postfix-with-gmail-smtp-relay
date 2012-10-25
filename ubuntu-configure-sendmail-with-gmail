@@ -3,13 +3,24 @@
 sudo apt-get install postfix
 # and setup using Internet site with a smarthost. Use all default parameters.
 
-zenity --version >/dev/null || { echo "Zenity not found. Exiting in 5 seconds."; sleep 5; exit -1; }
-GMAIL_USER=$(zenity --entry --title="Gmail username" --text="Enter your gmail username:")
-GMAIL_PASS=$(zenity --entry --title="Gmail password" --text="Enter your gmail password:" --hide-text)
-if ! [ -f /etc/postfix/main.cf.original ]; then
-	sudo cp /etc/postfix/main.cf /etc/postfix/main.cf.original
+if zenity --version >/dev/null; then
+  GMAIL_USER=$(zenity --entry --title="Gmail username" --text="Enter your gmail username:")
+  GMAIL_PASS=$(zenity --entry --title="Gmail password" --text="Enter your gmail password:" --hide-text)
+else
+  read -p "Gmail username: " GMAIL_USER
+  read -sp "Gmail password: " GMAIL_PASS
 fi
-sudo tee /etc/postfix/main.cf <<__EOF
+
+echo # an empty line
+
+if [ -z "$GMAIL_USER" ]; then echo "No gmail username given"; exit -1; fi
+if [ -z "$GMAIL_PASS" ]; then echo "No gmail password given"; exit -1; fi
+
+if ! [ -f /etc/postfix/main.cf.original ]; then
+  sudo cp /etc/postfix/main.cf /etc/postfix/main.cf.original
+fi
+
+sudo tee /etc/postfix/main.cf >/dev/null <<__EOF
 relayhost = [smtp.gmail.com]:587
 smtp_use_tls = yes
 smtp_sasl_auth_enable = yes
@@ -21,9 +32,13 @@ smtp_tls_CAfile = /etc/ssl/certs/Equifax_Secure_CA.pem
 smtp_tls_session_cache_database = btree:/var/lib/postfix/smtp_tls_session_cache
 __EOF
 
-echo "[smtp.gmail.com]:587 $GMAIL_USER:$GMAIL_PASS" | sudo tee /etc/postfix/sasl_passwd
+echo "[smtp.gmail.com]:587 $GMAIL_USER:$GMAIL_PASS" | sudo tee /etc/postfix/sasl_passwd >/dev/null
 sudo chmod 400 /etc/postfix/sasl_passwd
 sudo postmap /etc/postfix/sasl_passwd
-echo "smtp.gmail.com MUST" | sudo tee /etc/postfix/tls_per_site
+echo "smtp.gmail.com MUST" | sudo tee /etc/postfix/tls_per_site >/dev/null
 sudo chmod 400 /etc/postfix/tls_per_site
 sudo postmap /etc/postfix/tls_per_site
+
+sudo service postfix restart
+echo "Configuration done"
+
