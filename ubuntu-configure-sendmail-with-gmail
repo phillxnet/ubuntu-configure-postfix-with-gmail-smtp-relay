@@ -26,7 +26,6 @@ __EOF
 echo "Postfix should be configured as Internet site with smarthost"
 sudo apt-get install -q -y postfix
 # and setup using Internet site with a smarthost. Use all default parameters.
-exit 0
 
 if zenity --version >/dev/null; then
   GMAIL_USER=$(zenity --entry --title="Gmail username" --text="Enter your gmail username:")
