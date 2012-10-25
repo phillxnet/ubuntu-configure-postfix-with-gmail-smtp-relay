@@ -1,5 +1,7 @@
 #!/bin/bash
 
+function install_postfix() {
+
 echo | sudo debconf-set-selections <<__EOF
 postfix	postfix/root_address	string	
 postfix	postfix/rfc1035_violation	boolean	false
@@ -25,7 +27,18 @@ __EOF
 
 echo "Postfix should be configured as Internet site with smarthost"
 sudo apt-get install -q -y postfix
-# and setup using Internet site with a smarthost. Use all default parameters.
+}
+
+if ! dpkg -s postfix >/dev/null;
+then
+  install_postfix
+else
+  echo "Postfix is already installed."
+  echo "You may consider removing it before running the script."
+  echo "You may do so with the following command:"
+  echo "sudo apt-get purge postfix"
+  echo
+fi
 
 if zenity --version >/dev/null; then
   GMAIL_USER=$(zenity --entry --title="Gmail username" --text="Enter your gmail username:")
