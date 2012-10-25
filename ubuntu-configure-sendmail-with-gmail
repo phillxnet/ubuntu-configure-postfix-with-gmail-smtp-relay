@@ -85,3 +85,7 @@ The postfix service has been configured at host '${HOST}'.
 Thank you for using this postfix configuration script.
 __EOF
 
+echo "I have sent you a mail to $GMAIL_USER@gmail.com"
+echo "This will confirm that the configuration is good."
+echo "Please check your inbox at gmail."
+
