@@ -1,7 +1,32 @@
 #!/bin/bash
 
-sudo apt-get install postfix
+echo | sudo debconf-set-selections <<__EOF
+postfix	postfix/root_address	string	
+postfix	postfix/rfc1035_violation	boolean	false
+postfix	postfix/mydomain_warning	boolean	
+postfix	postfix/mynetworks	string	127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
+postfix	postfix/mailname	string	$HOST
+postfix	postfix/tlsmgr_upgrade_warning	boolean	
+postfix	postfix/recipient_delim	string	+
+postfix	postfix/main_mailer_type	select	Internet with smarthost
+postfix	postfix/destinations	string	$HOST, localhost.localdomain, localhost
+postfix	postfix/retry_upgrade_warning	boolean	
+# Install postfix despite an unsupported kernel?
+postfix	postfix/kernel_version_warning	boolean	
+postfix	postfix/not_configured	error	
+postfix	postfix/sqlite_warning	boolean	
+postfix	postfix/mailbox_limit	string	0
+postfix	postfix/relayhost	string	[smtp.gmail.com]:587
+postfix	postfix/procmail	boolean	false
+postfix	postfix/bad_recipient_delimiter	error	
+postfix	postfix/protocols	select	all
+postfix	postfix/chattr	boolean	false
+__EOF
+
+echo "Postfix should be configured as Internet site with smarthost"
+sudo apt-get install -q -y postfix
 # and setup using Internet site with a smarthost. Use all default parameters.
+exit 0
 
 if zenity --version >/dev/null; then
   GMAIL_USER=$(zenity --entry --title="Gmail username" --text="Enter your gmail username:")
@@ -13,8 +38,8 @@ fi
 
 echo # an empty line
 
-if [ -z "$GMAIL_USER" ]; then echo "No gmail username given"; exit -1; fi
-if [ -z "$GMAIL_PASS" ]; then echo "No gmail password given"; exit -1; fi
+if [ -z "$GMAIL_USER" ]; then echo "No gmail username given. Exiting."; exit -1; fi
+if [ -z "$GMAIL_PASS" ]; then echo "No gmail password given. Exiting."; exit -1; fi
 
 if ! [ -f /etc/postfix/main.cf.original ]; then
   sudo cp /etc/postfix/main.cf /etc/postfix/main.cf.original
