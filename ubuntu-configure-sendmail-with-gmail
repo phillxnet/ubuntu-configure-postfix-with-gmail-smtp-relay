@@ -1,7 +1,8 @@
 #!/bin/bash
 
-function install_postfix() {
+HOST=$(hostname)
 
+function install_postfix() {
 echo | sudo debconf-set-selections <<__EOF
 postfix	postfix/root_address	string	
 postfix	postfix/rfc1035_violation	boolean	false
@@ -78,4 +79,9 @@ sudo postmap /etc/postfix/tls_per_site
 
 sudo service postfix restart
 echo "Configuration done"
+
+mail -s "Email relaying configured at ${HOST}" $GMAIL_USER@gmail.com <<__EOF
+The postfix service has been configured at host '${HOST}'.
+Thank you for using this postfix configuration script.
+__EOF
 
