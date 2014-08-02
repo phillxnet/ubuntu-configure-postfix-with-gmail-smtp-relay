@@ -2,10 +2,11 @@
 
 HOST=$(hostname)
 
+# preconfigure the postfix install questions via debconf-set-selections
+# debconf-set-selections takes four values per line, one line per question
+# package name, question name, type of value requested(eg boolean), answer
 function install_postfix() {
 echo | sudo debconf-set-selections <<__EOF
-# four values per line, one line per question
-# package name, question name, type of value requested(eg boolean), answer
 postfix	postfix/root_address	string	
 postfix	postfix/rfc1035_violation	boolean	false
 postfix	postfix/mydomain_warning	boolean	
