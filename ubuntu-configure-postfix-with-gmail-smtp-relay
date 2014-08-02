@@ -14,10 +14,9 @@ postfix	postfix/mynetworks	string	127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
 postfix	postfix/mailname	string	$HOST
 postfix	postfix/tlsmgr_upgrade_warning	boolean
 postfix	postfix/recipient_delim	string	+
-postfix	postfix/main_mailer_type	select	Internet with smarthost
+postfix	postfix/main_mailer_type	select	Satellite system
 postfix	postfix/destinations	string	$HOST, localhost.localdomain, localhost
 postfix	postfix/retry_upgrade_warning	boolean
-# Install postfix despite an unsupported kernel?
 postfix	postfix/kernel_version_warning	boolean
 postfix	postfix/not_configured	note
 postfix	postfix/sqlite_warning	boolean
@@ -29,7 +28,7 @@ postfix	postfix/protocols	select	all
 postfix	postfix/chattr	boolean	false
 __EOF
 
-echo "Postfix should be configured as Internet site with smarthost"
+echo "Postfix should be configured as Satellite system"
 sudo apt-get install -q -y postfix
 # -q for quiet
 # -y for yes
@@ -44,6 +43,20 @@ else
   echo "You may do so with the following command:"
   echo "sudo apt-get purge postfix"
   echo
+fi
+
+if which mail >/dev/null;
+then
+  echo "mail command found"
+else
+  echo "mail command not found; required later to send test email"
+  read -p "Would you like to install mailutils which contains the mail command (y/n): " REPLY
+  if [ "$REPLY" = "y" ]; then
+    echo "Installing mailutils"
+    sudo apt-get install -q mailutils
+  else
+    echo "OK proceeding without installing mailutils"
+  fi
 fi
 
 if zenity --version >/dev/null; then
@@ -63,20 +76,17 @@ if ! [ -f /etc/postfix/main.cf.original ]; then
   sudo cp /etc/postfix/main.cf /etc/postfix/main.cf.original
 fi
 
-sudo tee /etc/postfix/main.cf >/dev/null <<__EOF
-relayhost = [smtp.gmail.com]:587
+sudo tee -a /etc/postfix/main.cf >/dev/null <<__EOF
 smtp_use_tls = yes
 smtp_sasl_auth_enable = yes
 smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
 smtp_sasl_security_options = noanonymous
 smtp_tls_loglevel = 1
-#smtp_tls_per_site = hash:/etc/postfix/tls_per_site
 #smtp_tls_per_site is now strongly discouraged see:-
 #http://www.postfix.org/postconf.5.html#smtp_tls_per_site
 #now considered better to use smtp_tls_policy_maps
 smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
 smtp_tls_CAfile = /etc/ssl/certs/Equifax_Secure_CA.pem
-smtp_tls_session_cache_database = btree:/var/lib/postfix/smtp_tls_session_cache
 __EOF
 
 echo "[smtp.gmail.com]:587 $GMAIL_USER:$GMAIL_PASS" | sudo tee /etc/postfix/sasl_passwd >/dev/null
