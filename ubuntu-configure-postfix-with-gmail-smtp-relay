@@ -102,12 +102,12 @@ sudo postmap /etc/postfix/tls_policy
 sudo service postfix restart
 echo "Configuration done"
 
-mail -s "Email relaying configured at ${HOST}" $GMAIL_USER@gmail.com <<__EOF
+mail -s "Email relaying configured at ${HOST}" $GMAIL_USER <<__EOF
 The postfix service has been configured at host '${HOST}'.
 Thank you for using this postfix configuration script.
 __EOF
 
-echo "I have sent you a mail to $GMAIL_USER@gmail.com"
-echo "This will confirm that the configuration is good."
+echo "An email has been sent to $GMAIL_USER"
+echo "To test the current configuration."
 echo "Please check your inbox at gmail."
 
