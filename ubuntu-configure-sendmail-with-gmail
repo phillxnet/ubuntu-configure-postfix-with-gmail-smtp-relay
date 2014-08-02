@@ -28,6 +28,8 @@ __EOF
 
 echo "Postfix should be configured as Internet site with smarthost"
 sudo apt-get install -q -y postfix
+# -q for quiet
+# -y for yes
 }
 
 if ! dpkg -s postfix >/dev/null;
