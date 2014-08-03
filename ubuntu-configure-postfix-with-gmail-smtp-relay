@@ -45,20 +45,6 @@ else
   echo
 fi
 
-if which mail >/dev/null;
-then
-  echo "mail command found"
-else
-  echo "mail command not found; required later to send test email"
-  read -p "Would you like to install mailutils which contains the mail command (y/n): " REPLY
-  if [ "$REPLY" = "y" ]; then
-    echo "Installing mailutils"
-    sudo apt-get install -q mailutils
-  else
-    echo "OK proceeding without installing mailutils"
-  fi
-fi
-
 if zenity --version >/dev/null; then
   GMAIL_USER=$(zenity --entry --title="Gmail username" --text="Enter your gmail username:")
   GMAIL_PASS=$(zenity --entry --title="Gmail password" --text="Enter your gmail password:" --hide-text)
@@ -102,12 +88,39 @@ sudo postmap /etc/postfix/tls_policy
 sudo service postfix restart
 echo "Configuration done"
 
-mail -s "Email relaying configured at ${HOST}" $GMAIL_USER <<__EOF
-The postfix service has been configured at host '${HOST}'.
-Thank you for using this postfix configuration script.
-__EOF
+read -e -p "Would you like to send a test email using the new configuration? (y/n): " -i "y" TESTEMAIL
 
-echo "An email has been sent to $GMAIL_USER"
-echo "To test the current configuration."
-echo "Please check your inbox at gmail."
+function send_test_email() {
+if which mail >/dev/null; then
+  echo "Sending test email, it should only take a few minutes to arrive"
+  mail -s "Email relaying configured at ${HOST}" $GMAIL_USER <<__EOF
+  The postfix service has been configured on host '${HOST}'.
+  Thank you for using this postfix configuration script.
+__EOF
+  echo "A test email has been sent to ${GMAIL_USER} from this host '${HOST}'" 
+else
+  echo "There was a problem finding the 'mail' command"
+  echo "Test email not sent"
+fi
+}
+
+if [ "$TESTEMAIL" = "y" ]; then
+  if which mail >/dev/null; then
+    echo "mail command found"
+    send_test_email
+  else
+    echo "mail command not found; required to send test email"
+    read -e -p "Would you like to install mailutils which contains the mail command? (y/n): " -i "y" REPLY
+    if [ "$REPLY" = "y" ]; then
+      echo "Installing mailutils"
+      sudo apt-get install -q mailutils
+      send_test_email
+    else
+      echo "OK proceeding without installing mailutils"
+      echo "Test email not sent"
+    fi
+  fi
+else
+  echo "OK no test email sent"
+fi
 
