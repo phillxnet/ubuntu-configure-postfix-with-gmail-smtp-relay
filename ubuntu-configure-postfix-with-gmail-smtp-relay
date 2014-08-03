@@ -34,14 +34,14 @@ sudo apt-get install -q -y postfix
 # -y for yes
 }
 
-if ! dpkg -s postfix >/dev/null;
-then
+if ! dpkg -s postfix >/dev/null; then
   install_postfix
 else
   echo "Postfix is already installed."
   echo "You may consider removing it before running the script."
   echo "You may do so with the following command:"
   echo "sudo apt-get purge postfix"
+  echo "N.B. This command will remove all previous configurations of postfix bar /etc/mailname"
   echo
 fi
 
