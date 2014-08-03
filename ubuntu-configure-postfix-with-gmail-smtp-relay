@@ -30,8 +30,7 @@ __EOF
 
 echo "Postfix should be configured as Satellite system"
 sudo apt-get install -q -y postfix
-# -q for quiet
-# -y for yes
+# -q for quiet -y for yes
 }
 
 if ! dpkg -s postfix >/dev/null; then
@@ -52,9 +51,6 @@ else
   read -p "Gmail username (your email address): " GMAIL_USER
   read -p "Gmail password (app specific if 2 factor enabled, WARNING will be visible as you type): " GMAIL_PASS
 fi
-
-
-echo # an empty line
 
 if [ -z "$GMAIL_USER" ]; then echo "No gmail username given. Exiting."; exit -1; fi
 if [ -z "$GMAIL_PASS" ]; then echo "No gmail password given. Exiting."; exit -1; fi
@@ -124,4 +120,3 @@ if [ "$TESTEMAIL" = "y" ]; then
 else
   echo "OK no test email sent"
 fi
-
