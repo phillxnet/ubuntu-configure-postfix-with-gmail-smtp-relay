@@ -70,8 +70,10 @@ smtp_tls_loglevel = 1
 #now considered better to use smtp_tls_policy_maps
 smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
 smtp_tls_CAfile = /etc/ssl/certs/Equifax_Secure_CA.pem
+virtual_alias_maps = hash:/etc/postfix/virtual
 __EOF
 
+# N.B. all tees without -a cause an overwrite of the output file
 echo "[smtp.gmail.com]:587 $GMAIL_USER:$GMAIL_PASS" | sudo tee /etc/postfix/sasl_passwd >/dev/null
 sudo chmod 400 /etc/postfix/sasl_passwd
 sudo postmap /etc/postfix/sasl_passwd
@@ -81,6 +83,13 @@ sudo postmap /etc/postfix/sasl_passwd
 echo "[smtp.gmail.com]:587 verify" | sudo tee /etc/postfix/tls_policy >/dev/null
 sudo chmod 400 /etc/postfix/tls_policy
 sudo postmap /etc/postfix/tls_policy
+# re-write envelope address (forward) mail addressed to admin@example.com to the gmail address,
+# note that the message will still appear as to admin@example.com in the message header.
+# The envelope "for" field will be changed to the gmail address so "for" as in "for the attention of"
+# use canonical mapping to rewrite header and envelope addresses
+echo "admin@example.com $GMAIL_USER" | sudo tee /etc/postfix/virtual >/dev/null
+sudo chmod 400 /etc/postfix/virtual
+sudo postmap /etc/postfix/virtual
 
 sudo service postfix restart
 echo "Configuration done"
